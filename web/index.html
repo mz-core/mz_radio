@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mz_radio</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="app" class="app" aria-hidden="true">
+      <div class="radio-layout">
+        <section class="radio-shell" aria-label="Radio">
+          <img class="radio-image" src="assets/radio.png" alt="Radio" draggable="false" />
+
+          <section class="quick-panel screen-panel" aria-label="Painel do radio">
+            <header class="panel-head">
+              <div>
+                <p class="eyebrow">MZ RADIO</p>
+                <h1 id="statusText">Desconectado</h1>
+              </div>
+              <button id="closeButton" class="icon-button" type="button" aria-label="Fechar">x</button>
+            </header>
+
+            <section class="display-card">
+              <span>Frequencia atual</span>
+              <strong id="currentFrequency">OFF</strong>
+              <small id="connectionBadge" class="badge">Standby</small>
+            </section>
+
+            <form id="radioForm" class="radio-controls">
+              <input
+                id="frequencyInput"
+                type="number"
+                min="0.1"
+                step="0.1"
+                inputmode="decimal"
+                placeholder="190.1"
+                autocomplete="off"
+                aria-label="Frequencia"
+              />
+              <button id="connectButton" class="screen-action connect-action" type="submit" aria-label="Conectar">
+                OK
+              </button>
+              <button id="saveButton" class="screen-action save-action" type="button" aria-label="Salvar canal">
+                +
+              </button>
+              <button id="leaveButton" class="screen-action leave-action" type="button" aria-label="Sair da radio">
+                Sair
+              </button>
+            </form>
+
+            <section class="quick-section">
+              <div class="quick-title">
+                <span>Meus canais</span>
+                <small id="quickCount">0</small>
+              </div>
+              <div id="quickChannels" class="quick-list"></div>
+            </section>
+          </section>
+
+          <button id="powerButton" class="power-hotspot" type="button" aria-label="Desligar radio">
+            <span></span>
+          </button>
+        </section>
+      </div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

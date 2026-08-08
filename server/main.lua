@@ -22,7 +22,7 @@ local function getPlayerCitizenId(source)
     return nil
   end
 
-  local player = exports['mz_core']:GetPlayer(source)
+  local player = exports['mz_core']:GetPlayerSnapshot(source)
   return player and player.citizenid or nil
 end
 

@@ -2,6 +2,21 @@ local activeChannels = {}
 local registeredChecks = {}
 local radioStorageReady = false
 
+local function radioActionAllowed(source)
+  if GetResourceState('mz_core') ~= 'started' then
+    return false
+  end
+
+  local callOk, contractOk, decision = pcall(function()
+    return exports['mz_core']:CanPlayerPerformAction(source, 'radio.use')
+  end)
+
+  return callOk == true
+    and contractOk == true
+    and type(decision) == 'table'
+    and decision.allowed == true
+end
+
 local function roundFrequency(value)
   local frequency = tonumber(value)
   if not frequency then return nil end
@@ -222,6 +237,10 @@ local function hasRadioPermission(source, channelConfig)
 end
 
 local function validateFrequency(source, frequency)
+  if not radioActionAllowed(source) then
+    return false, 'Voce nao pode usar o radio neste estado.', nil, 'error'
+  end
+
   local normalized = roundFrequency(frequency)
 
   if not normalized or normalized <= 0 then
@@ -318,6 +337,14 @@ end)
 
 AddEventHandler('playerDropped', function()
   activeChannels[source] = nil
+end)
+
+AddEventHandler('mz_core:server:playerDeathStateChangedInternal', function(sourceId)
+  sourceId = tonumber(sourceId)
+  if not sourceId or radioActionAllowed(sourceId) then return end
+
+  activeChannels[sourceId] = nil
+  TriggerClientEvent('mz_radio:client:forceLeave', sourceId)
 end)
 
 local function registerPmaChannelChecks()

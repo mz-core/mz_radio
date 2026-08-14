@@ -7,6 +7,18 @@ local pendingRequests = {}
 local requestId = 0
 local savedChannels = {}
 
+local function radioActionAllowed()
+  if GetResourceState('mz_core') ~= 'started' then
+    return false
+  end
+
+  local ok, allowed = pcall(function()
+    return exports['mz_core']:CanLocalPlayerPerformAction('radio.use')
+  end)
+
+  return ok == true and allowed == true
+end
+
 local function roundFrequency(value)
   local frequency = tonumber(value)
   if not frequency then return nil end
@@ -88,6 +100,11 @@ local function sendRadioState()
 end
 
 local function setRadioVisible(visible)
+  if visible == true and not radioActionAllowed() then
+    notify('Voce nao pode usar o radio neste estado.', 'error')
+    return false
+  end
+
   radioOpen = visible == true
   SetNuiFocus(radioOpen, radioOpen)
 
@@ -100,6 +117,7 @@ local function setRadioVisible(visible)
   })
 
   sendRadioState()
+  return true
 end
 
 local function leaveRadio(silent)
@@ -133,6 +151,13 @@ local function handleJoinResponse(result)
     return
   end
 
+  if not radioActionAllowed() then
+    TriggerServerEvent('mz_radio:server:leftRadio')
+    notify('Voce nao pode usar o radio neste estado.', 'error')
+    sendRadioState()
+    return
+  end
+
   local frequency = roundFrequency(result.frequency)
   if not frequency then
     notify('Frequencia invalida.', 'error')
@@ -155,6 +180,14 @@ local function handleJoinResponse(result)
 end
 
 local function requestJoin(frequency, nuiCb)
+  if not radioActionAllowed() then
+    local result = { ok = false, message = 'Voce nao pode usar o radio neste estado.', type = 'error' }
+
+    if nuiCb then nuiCb(result) end
+    notify(result.message, result.type)
+    return
+  end
+
   local normalized = roundFrequency(frequency)
 
   if not normalized or normalized <= 0 then
@@ -185,6 +218,32 @@ end)
 
 RegisterNetEvent('mz_radio:client:notify', function(message, notifyType)
   notify(message, notifyType)
+end)
+
+local function forceRadioExit()
+  local hadRadioSurface = radioOpen or onRadio
+
+  if radioOpen then
+    setRadioVisible(false)
+  end
+
+  if onRadio then
+    leaveRadio(true)
+  end
+
+  if hadRadioSurface then
+    notify('Voce nao pode usar o radio neste estado.', 'error')
+  end
+end
+
+RegisterNetEvent('mz_radio:client:forceLeave', function()
+  forceRadioExit()
+end)
+
+RegisterNetEvent('mz_core:client:playerStateSync', function()
+  if not radioActionAllowed() then
+    forceRadioExit()
+  end
 end)
 
 RegisterNetEvent('mz_radio:client:availableChannels', function(channels)
